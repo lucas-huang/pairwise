@@ -35,7 +35,6 @@ server <- function(input, output, session) {
   randomAnswer2 <- answers[sample(1:numAnswers)[1], 1]
   currentLabel1 <- as.character(randomAnswer1)
   currentLabel2 <- as.character(randomAnswer2)
-  ip <- isolate(input$remote_addr)
   
   output$question <- renderText({
     question
@@ -96,18 +95,21 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$answer1,{
+    ip <- (isolate(input$remote_addr))
     gs_add_row(data, ws = "responses", input = c(ip, question, getLabel1(), getLabel2(), getLabel1()))
     updateActionButton(session, "answer1", label = setLabel1())
     updateActionButton(session, "answer2", label = setLabel2())
   })
   
   observeEvent(input$answer2, {
+    ip <- (isolate(input$remote_addr))
     gs_add_row(data, ws = "responses", input = c(ip, question, getLabel1(), getLabel2(), getLabel2()))
     updateActionButton(session, "answer1", label = setLabel1())
     updateActionButton(session, "answer2", label = setLabel2())
   })
   
   observeEvent(input$cantdecide, {
+    ip <- (isolate(input$remote_addr))
     gs_add_row(data, ws = "responses", input = c(ip, question, getLabel1(), getLabel2(), "Can't Decide"))
     updateActionButton(session, "answer1", label = setLabel1())
     updateActionButton(session, "answer2", label = setLabel2())
