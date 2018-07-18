@@ -13,39 +13,38 @@ ui <- function(req) {
         )
     ),
     mainPanel(class = "grey",
-    fluidRow(
-      column(12, align = "center",
-        h2(textOutput("question"))
-      )
-    ),
-    
-    br(),
-    
-    fluidRow(
-      column(3, offset = 3, align = "center",
-        uiOutput("answer1")
+      fluidRow(
+        column(12, align = "center",
+          h2(textOutput("question"))
+        )
       ),
-      column(3, align = "center",
-        uiOutput("answer2")
-      )
-    ),
     
-    br(),
+      br(),
     
-    fluidRow(
-      column(2, offset = 5, align = "center",
-        uiOutput("cantdecide")
-      )
-    ),
+      fluidRow(
+        column(3, offset = 3, align = "center",
+          uiOutput("answer1")
+        ),
+        column(3, align = "center",
+          uiOutput("answer2")
+        )
+      ),
     
-    br()
+      br(),
     
-    ),
+      fluidRow(
+        column(2, offset = 5, align = "center",
+          uiOutput("cantdecide")
+        )
+      ),
     
-  sidebarPanel(
-           textInput("id", h3("Please enter your ID"), 
-                     value = "")
-  )
+      br()
+      
+      ),
+    sidebarPanel(
+      textInput("id", h3("Please enter your ID"), 
+                value = "")
+    )
   )
 }
 
