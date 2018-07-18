@@ -3,6 +3,7 @@ library(googlesheets)
 
 ui <- function(req) {
   fluidPage(
+    theme = "style.css",
     div(style = "display: none;",
         textInput("remote_addr", "remote_addr",
                   if (!is.null(req[["HTTP_X_FORWARDED_FOR"]]))
@@ -11,19 +12,40 @@ ui <- function(req) {
                     req[["REMOTE_ADDR"]]
         )
     ),
-    titlePanel(
-      "Pairwise Comparison App"
+    mainPanel(class = "grey",
+    fluidRow(
+      column(12, align = "center",
+        h2(textOutput("question"))
+      )
     ),
-    mainPanel(
-      textOutput("question"),
-      uiOutput("answer1"),
-      uiOutput("answer2"),
-      uiOutput("cantdecide")
+    
+    br(),
+    
+    fluidRow(
+      column(3, offset = 3, align = "center",
+        uiOutput("answer1")
+      ),
+      column(3, align = "center",
+        uiOutput("answer2")
+      )
     ),
-    sidebarPanel(
-      textInput("id", h3("Please enter your ID"), 
-                value = "")
-    )
+    
+    br(),
+    
+    fluidRow(
+      column(2, offset = 5, align = "center",
+        uiOutput("cantdecide")
+      )
+    ),
+    
+    br()
+    
+    ),
+    
+  sidebarPanel(
+           textInput("id", h3("Please enter your ID"), 
+                     value = "")
+  )
   )
 }
 
@@ -55,21 +77,38 @@ server <- function(input, output, session) {
     }
   }
   
-  output$question <- renderText({
-    question
-  })
+  #renders the question
+  newQuestion <- function() {
+    output$question <- renderText({
+      question
+    })
+  }
   
-  output$answer1 <- renderUI({
-    actionButton("answer1", label = setLabel1())
-  })
+  #renders the first answer button
+  newButton1 <- function() {
+    output$answer1 <- renderUI({
+      actionButton("answer1", label = setLabel1(), class = "answer")
+    })
+  }
   
-  output$answer2 <- renderUI({
-    actionButton("answer2", label = setLabel2())
-  })
+  #renders the second answer button
+  newButton2 <- function() {
+    output$answer2 <- renderUI({
+      actionButton("answer2", label = setLabel2(), class = "answer")
+    })
+  }
   
-  output$cantdecide <- renderUI({
-    actionButton("cantdecide", label = "Can't Decide")
-  })
+  #renders the cantdecide button
+  newButton3 <- function() {
+    output$cantdecide <- renderUI({
+      actionButton("cantdecide", label = "I  Can't Decide", class = "cantdecide")
+    })
+  }
+  
+  newQuestion()
+  newButton1()
+  newButton2()
+  newButton3()
   
   #gets the label of the first button
   getLabel1 <- function(){
@@ -83,7 +122,7 @@ server <- function(input, output, session) {
   
   #adds a row of data to the "responses" sheet
   addRow <- function(x){
-    time <- format(Sys.time(), paste("%Y-%m-%d %H:%M %OS3"))
+    time <- format(Sys.time(), "%Y-%m-%d %H:%M %OS3")
     id <- input$id
     ip <- (isolate(input$remote_addr))
     if(x == 1) {
@@ -97,35 +136,21 @@ server <- function(input, output, session) {
   
   observeEvent(input$answer1, {
     addRow(1)
-    output$answer1 <- renderUI({
-      actionButton("answer1", label = setLabel1())
-    })
-    output$answer2 <- renderUI({
-      actionButton("answer2", label = setLabel2())
-    })
+    newButton1()
+    newButton2()
   })
   
   observeEvent(input$answer2, {
     addRow(2)
-    output$answer1 <- renderUI({
-      actionButton("answer1", label = setLabel1())
-    })
-    output$answer2 <- renderUI({
-      actionButton("answer2", label = setLabel2())
-    })
+    newButton1()
+    newButton2()
   })
   
   observeEvent(input$cantdecide, {
     addRow(3)
-    output$answer1 <- renderUI({
-      actionButton("answer2", label = setLabel1())
-    })
-    output$answer2 <- renderUI({
-      actionButton("answer2", label = setLabel2())
-    })
-    output$cantdecide <- renderUI({
-      actionButton("cantdecide", label = "Can't Decide")
-    })
+    newButton1()
+    newButton2()
+    newButton3()
   })
   
 }
