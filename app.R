@@ -41,15 +41,17 @@ ui <- function(req) {
       br()
       
       ),
+    
     sidebarPanel(
       textInput("id", h3("Please enter your ID"), 
-                value = "")
+                value = ""),
+      (textOutput("count"))
     )
   )
 }
 
 server <- function(input, output, session) {
-
+  
   data <- gs_title("app")
   surveys <- gs_read(data, ws = "surveys", range = "A1:B100")
   question <- as.character(surveys[1,1])
@@ -58,6 +60,7 @@ server <- function(input, output, session) {
   numAnswers <- dim(surveys)[1]
   currentLabel1 <- as.character(surveys[sample(1:numAnswers)[1], 2])
   currentLabel2 <- as.character(surveys[sample(1:numAnswers)[1], 2])
+  count <- 0
   
   #sets the label of the first button
   setLabel1 <- function(){
@@ -75,39 +78,46 @@ server <- function(input, output, session) {
       return(currentLabel2)
     }
   }
-  
+  #renders the number of answers selected
+  renderCount <- function() {
+    output$count <- renderText({
+      as.character(count)
+    })
+  }
+
   #renders the question
-  newQuestion <- function() {
+  renderQuestion <- function() {
     output$question <- renderText({
       question
     })
   }
   
   #renders the first answer button
-  newButton1 <- function() {
+  renderButton1 <- function() {
     output$answer1 <- renderUI({
       actionButton("answer1", label = setLabel1(), class = "answer")
     })
   }
   
   #renders the second answer button
-  newButton2 <- function() {
+  renderButton2 <- function() {
     output$answer2 <- renderUI({
       actionButton("answer2", label = setLabel2(), class = "answer")
     })
   }
   
   #renders the cantdecide button
-  newButton3 <- function() {
+  renderButton3 <- function() {
     output$cantdecide <- renderUI({
       actionButton("cantdecide", label = "I  Can't Decide", class = "cantdecide")
     })
   }
   
-  newQuestion()
-  newButton1()
-  newButton2()
-  newButton3()
+  renderCount()
+  renderQuestion()
+  renderButton1()
+  renderButton2()
+  renderButton3()
   
   #gets the label of the first button
   getLabel1 <- function(){
@@ -133,23 +143,64 @@ server <- function(input, output, session) {
     }
   }
   
+  endReached <- function() {
+    if(count == 3) {
+      return(TRUE)
+    } else return(FALSE)
+  }
+  
+  removeButtons <- function() {
+    removeUI("div:has(> #answer1)")
+    removeUI("div:has(> #answer2)")
+    removeUI("div:has(> #cantdecide)")
+  }
+  
+  showMessage <- function() {
+    showModal(modalDialog(
+      title = "The End",
+      "Thank you for completing your selections.  We will review your
+       work and approve payments within the next 5 business days."
+    ))
+  }
+  
   observeEvent(input$answer1, {
-    addRow(1)
-    newButton1()
-    newButton2()
+    count <<- count + 1
+    renderCount()
+    if(!endReached()) {
+      addRow(1)
+      renderButton1()
+      renderButton2()
+    } else {
+      removeButtons()
+      showMessage()
+    }
   })
   
   observeEvent(input$answer2, {
-    addRow(2)
-    newButton1()
-    newButton2()
+    count <<- count + 1
+    renderCount()
+    if(!endReached()) {
+      addRow(2)
+      renderButton1()
+      renderButton2()
+    } else {
+      removeButtons()
+      showMessage()
+    }
   })
   
   observeEvent(input$cantdecide, {
-    addRow(3)
-    newButton1()
-    newButton2()
-    newButton3()
+    count <<- count + 1
+    renderCount()
+    if(!endReached()) {
+      addRow(3)
+      renderButton1()
+      renderButton2()
+      renderButton3()
+    } else {
+      removeButtons()
+      showMessage()
+    }
   })
   
 }
