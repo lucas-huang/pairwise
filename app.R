@@ -130,21 +130,49 @@ server <- function(input, output, session) {
   }
   
   #adds a row of data to the "responses" sheet
-  addRow <- function(x){
+  # addRow <- function(x){
+  #   time <- format(Sys.time(), "%Y-%m-%d %H:%M %OS3")
+  #   id <- input$id
+  #   ip <- (isolate(input$remote_addr))
+  #   if(x == 1) {
+  #     gs_add_row(data, ws = "responses", input = data.frame(time, id, ip, question, getLabel1(), getLabel2(), getLabel1()))
+  #   } else if(x == 2) {
+  #     gs_add_row(data, ws = "responses", input = data.frame(time, id, ip, question, getLabel1(), getLabel2(), getLabel2()))
+  #   } else {
+  #     gs_add_row(data, ws = "responses", input = data.frame(time, id, ip, question, getLabel1(), getLabel2(), "Can't Decide"))
+  #   }
+  # }
+  
+  answers <- data.frame(matrix(0:0,nrow=0,ncol=7))
+  names(answers) <- c("time", "id", "ip", "question", "answer1", "answer2", "answer")
+  
+  record <- function(x) {
     time <- format(Sys.time(), "%Y-%m-%d %H:%M %OS3")
     id <- input$id
     ip <- (isolate(input$remote_addr))
     if(x == 1) {
-      gs_add_row(data, ws = "responses", input = data.frame(time, id, ip, question, getLabel1(), getLabel2(), getLabel1()))
+      a <- data.frame(time, id, ip, question, getLabel1(), getLabel2(), getLabel2())
+      names(a) <- c("time", "id", "ip", "question", "answer1", "answer2", "answer")
+      answers <<- rbind(answers, a)
     } else if(x == 2) {
-      gs_add_row(data, ws = "responses", input = data.frame(time, id, ip, question, getLabel1(), getLabel2(), getLabel2()))
+      a <- data.frame(time, id, ip, question, getLabel1(), getLabel2(), getLabel2())
+      names(a) <- c("time", "id", "ip", "question", "answer1", "answer2", "answer")
+      merge(answers, a)
     } else {
-      gs_add_row(data, ws = "responses", input = data.frame(time, id, ip, question, getLabel1(), getLabel2(), "Can't Decide"))
+      a <- data.frame(time, id, ip, question, getLabel1(), getLabel2(), "Can't Decide")
+      names(a) <- c("time", "id", "ip", "question", "answer1", "answer2", "answer")
+      merge(answers, a)
+    }
+  }
+  
+  addRows <- function() {
+    for(row in 1:nrow(answers)) {
+      gs_add_row(data, ws = "responses", input = answers[row,])
     }
   }
   
   endReached <- function() {
-    if(count == 3) {
+    if(count == 5) {
       return(TRUE)
     } else return(FALSE)
   }
@@ -166,11 +194,13 @@ server <- function(input, output, session) {
   observeEvent(input$answer1, {
     count <<- count + 1
     renderCount()
+    record(1)
     if(!endReached()) {
-      addRow(1)
+      #addRow(1)
       renderButton1()
       renderButton2()
     } else {
+      addRows()
       removeButtons()
       showMessage()
     }
@@ -179,11 +209,13 @@ server <- function(input, output, session) {
   observeEvent(input$answer2, {
     count <<- count + 1
     renderCount()
+    record(2)
     if(!endReached()) {
-      addRow(2)
+      #addRow(2)
       renderButton1()
       renderButton2()
     } else {
+      addRows()
       removeButtons()
       showMessage()
     }
@@ -192,12 +224,14 @@ server <- function(input, output, session) {
   observeEvent(input$cantdecide, {
     count <<- count + 1
     renderCount()
+    record(3)
     if(!endReached()) {
-      addRow(3)
+      #addRow(3)
       renderButton1()
       renderButton2()
       renderButton3()
     } else {
+      addRows()
       removeButtons()
       showMessage()
     }
